@@ -1,6 +1,14 @@
 # BossFetcher Web（帮你刷 boss）
 
-BossFetcher Web 是独立于原开源 BossFetcher 的 Web 版项目：静态官网 + 单一 Tampermonkey 用户脚本，实现 BOSS 直聘本地采集、本地存储与本地结果页。**不注册、不登录、数据默认只留在用户浏览器。**
+BossFetcher Web 是独立于原开源 BossFetcher 的 Web 版项目：静态官网 + 单一 Tampermonkey 用户脚本，实现 BOSS 直聘本地采集、本地存储与本地结果页。
+
+## 产品与数据边界
+
+- 官网无需注册或登录。
+- 岗位、公司和采集状态保存在 Tampermonkey 本地存储。
+- 公开官网使用自托管 Umami 统计公开页面和固定安装事件。
+- `/app`、BOSS 页面和用户脚本不加载统计。
+- AI 是第二阶段可选功能，第一阶段没有 AI 远程调用。
 
 ## 快速开始（开发）
 
@@ -9,8 +17,11 @@ pnpm install
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm test:e2e                              # 浏览器级 staging 测试（需先 pnpm build）
 node scripts/verify-release.mjs --release   # 发布前检查
 ```
+
+CI（GitHub Actions）在 pull request 与 main push 时执行 `pnpm verify` 与 `pnpm test:e2e`。
 
 ## 仓库结构
 
@@ -36,9 +47,12 @@ docs/                      privacy-data-flow、release-runbook
 - `/app` 不加载统计；统计只覆盖公开官网页面与固定安装漏斗。
 - 统计事件仅固定 10 个名称，无 event data；支持本地退出与 Do Not Track。
 - API Key 只在本地设置，默认备份不含密钥。
-- 参考规格：`docs/superpowers/specs/2026-08-20-bossfetcher-web-local-userscript-development-spec.md`（上游仓库）。
 
-## 产品/部署门
+## 文档
 
-- 域名、备案、GitHub 仓库归属、Umami website id 等由产品负责人确认（见规格 Gate U1–U4）。
-- 部署基线见 `docs/superpowers/research/2026-08-21-tencent-cloud-server-baseline.md` 与 `infra/`。
+- 隐私与数据流：`docs/privacy-data-flow.md`
+- 安装向导：官网 `/install`（本地 `pnpm --filter @bossfetcher/site dev` 后访问）
+- 开发与验证：本 README「快速开始」与 `scripts/verify-release.mjs`
+- 发布运行手册：`docs/release-runbook.md`
+- staging 验收记录：`docs/staging-acceptance.md`
+- 安全报告：请通过 [GitHub Issues](https://github.com/howdoyouknowthat/bossfetcher-web/issues) 提交；请勿在 Issue 中包含岗位正文、简历、API Key、Cookie 或个人信息。
