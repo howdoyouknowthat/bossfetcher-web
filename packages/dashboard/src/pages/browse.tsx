@@ -1,6 +1,7 @@
 import { Fragment, useMemo, useState } from 'react';
 import type { JobV1, JobQuery } from '@bossfetcher/contracts';
 import type { LocalRepository } from '@bossfetcher/repository';
+import { safeBossJobUrl } from '@bossfetcher/repository';
 import { Chip, Empty, PageHead } from '../components';
 
 const PAGE_SIZE = 20;
@@ -119,7 +120,9 @@ export function BrowsePage({ repo, tick }: { repo: LocalRepository; tick: number
               </tr>
             </thead>
             <tbody>
-              {page.items.map((j) => (
+              {page.items.map((j) => {
+                const sourceUrl = safeBossJobUrl(j.url);
+                return (
                 <Fragment key={j.jobId}>
                   <tr style={{ cursor: 'pointer' }} onClick={() => toggleExpand(j.jobId)}>
                     <td>
@@ -133,8 +136,8 @@ export function BrowsePage({ repo, tick }: { repo: LocalRepository; tick: number
                     <td>{j.degree || '—'}</td>
                     <td>{(j.capturedAt || '').slice(0, 10)}</td>
                     <td>
-                      {j.url ? (
-                        <a href={j.url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>来源</a>
+                      {sourceUrl ? (
+                        <a href={sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>来源</a>
                       ) : null}
                       <button
                         className="bfd-btn ghost"
@@ -157,7 +160,8 @@ export function BrowsePage({ repo, tick }: { repo: LocalRepository; tick: number
                     </tr>
                   ) : null}
                 </Fragment>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         )}

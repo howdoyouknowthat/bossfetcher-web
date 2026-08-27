@@ -108,6 +108,23 @@ export function defaultSettings(): SettingsV1 {
   };
 }
 
+/**
+ * 备份导入与渲染层共用的岗位来源 URL 校验器。
+ * 只接受 https + www.zhipin.com + /job_detail/ 前缀，拒绝可执行/跨域/降级 URL。
+ */
+export function safeBossJobUrl(input: unknown): string | null {
+  if (typeof input !== 'string' || input.length === 0) return null;
+  try {
+    const url = new URL(input);
+    if (url.protocol !== 'https:') return null;
+    if (url.hostname !== 'www.zhipin.com') return null;
+    if (!url.pathname.startsWith('/job_detail/')) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
 function checksum(obj: unknown): string {
   const json = JSON.stringify(obj);
   let h = 0x811c9dc5;
@@ -554,6 +571,18 @@ export class LocalRepositoryImpl implements LocalRepository {
         errors.push('存在缺少 jobId 的岗位记录');
         break;
       }
+      if (job.url !== null && safeBossJobUrl(job.url) === null) {
+        errors.push(`岗位来源 URL 不安全：${job.jobId}`);
+        break;
+      }
+    }
+    const captureUrls = [
+      ...(backup.captureState?.queue ?? []).map((item) => item.url),
+      backup.captureState?.currentJob?.url,
+    ].filter((url): url is string => typeof url === 'string');
+
+    if (captureUrls.some((url) => safeBossJobUrl(url) === null)) {
+      errors.push('采集队列包含不安全的岗位来源 URL');
     }
     for (const company of backup.companies) {
       if (!company || typeof company.companyId !== 'string' || !company.companyId) {
@@ -618,9 +647,23 @@ export class LocalRepositoryImpl implements LocalRepository {
       }
     }
 
-    if (mode === 'replace' && backup.settings) {
-      const s = this.getSettings();
-      this.store.set(KEYS.settings, JSON.stringify({ ...s, ...backup.settings, schemaVersion: 1 }));
+    if (mode === 'replace') {
+      if (backup.captureState) {
+        this.store.set(
+          KEYS.captureState,
+          JSON.stringify({ ...backup.captureState, schemaVersion: 1 }),
+        );
+      }
+      if (backup.settings) {
+        const safeSettings: SettingsV1 = {
+          ...defaultSettings(),
+          ...backup.settings,
+          schemaVersion: 1,
+          apiKey: null,
+          aiEnabled: false,
+        };
+        this.store.set(KEYS.settings, JSON.stringify(safeSettings));
+      }
     }
     this.bumpRevision();
     return result;

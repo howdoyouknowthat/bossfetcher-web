@@ -223,6 +223,80 @@ describe('LocalRepository', () => {
     expect(preflight.errors.join('')).toContain('companyId');
   });
 
+  it('rejects executable or off-domain URLs in imported backups', async () => {
+    const repo = createRepository(createMemoryStore());
+    await repo.init();
+    await repo.upsertJob(makeJob('safe'));
+    const base = repo.exportBackup();
+
+    for (const url of [
+      'javascript:alert(document.domain)',
+      'data:text/html,<script>alert(1)</script>',
+      'https://example.com/job_detail/fake.html',
+      'http://www.zhipin.com/job_detail/insecure.html',
+    ]) {
+      const backup = {
+        ...base,
+        jobs: [{ ...base.jobs[0], url }],
+        checksum: '',
+      };
+      const preflight = repo.preflightBackup(backup);
+      expect(preflight.ok).toBe(false);
+      expect(preflight.errors.join('')).toContain('岗位来源 URL');
+    }
+  });
+
+  it('rejects unsafe URLs in the imported capture queue', async () => {
+    const repo = createRepository(createMemoryStore());
+    await repo.init();
+    await repo.upsertJob(makeJob('safe'));
+    const base = repo.exportBackup();
+
+    const bad = {
+      ...base,
+      captureState: {
+        ...base.captureState!,
+        queue: [{ jobId: 'evil', keyword: '运营', url: 'javascript:alert(1)' }],
+      },
+      checksum: '',
+    };
+    const preflight = repo.preflightBackup(bad);
+    expect(preflight.ok).toBe(false);
+    expect(preflight.errors.join('')).toContain('采集队列包含不安全的岗位来源 URL');
+  });
+
+  it('replace import restores capture state and non-secret settings', async () => {
+    const source = createRepository(createMemoryStore());
+    await source.init();
+    const settings = source.getSettings();
+    settings.theme = 'dark';
+    settings.apiKey = 'sk-must-not-export';
+    await source.saveSettings(settings);
+    const capture = source.getCaptureState();
+    capture.status = 'paused';
+    capture.currentKeyword = '产品经理';
+    capture.queue = [{
+      jobId: 'j1',
+      keyword: '产品经理',
+      url: 'https://www.zhipin.com/job_detail/j1.html',
+    }];
+    capture.queueTotal = 1;
+    await source.saveCaptureState(capture);
+
+    const backup = source.exportBackup();
+    expect(JSON.stringify(backup)).not.toContain('sk-must-not-export');
+
+    const target = createRepository(createMemoryStore());
+    await target.init();
+    target.importBackup(backup, 'replace');
+
+    expect(target.getCaptureState().status).toBe('paused');
+    expect(target.getCaptureState().currentKeyword).toBe('产品经理');
+    expect(target.getCaptureState().queue).toEqual(capture.queue);
+    expect(target.getSettings().theme).toBe('dark');
+    expect(target.getSettings().apiKey).toBeNull();
+  });
+
   it('default backup excludes the API key', async () => {
     const repo = createRepository(createMemoryStore());
     await repo.init();
