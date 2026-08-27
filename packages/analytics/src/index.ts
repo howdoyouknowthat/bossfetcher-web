@@ -12,6 +12,7 @@ export interface AnalyticsTransport {
   load(): void;
   sendPageView(): void;
   sendEvent(name: string): void;
+  cancelPending(): void;
 }
 
 export interface AnalyticsPlatform {
@@ -86,9 +87,10 @@ export class SiteAnalytics {
     return this.enabled;
   }
 
-  /** 本浏览器退出统计：写入本地退出标志并停止后续事件。 */
+  /** 本浏览器退出统计：取消所有待发送请求、写入本地退出标志并停止后续事件。 */
   disableForBrowser(): void {
     this.enabled = false;
+    this.platform.transport.cancelPending();
     try {
       this.platform.store.set(ANALYTICS_OPT_OUT_KEY, '1');
     } catch {

@@ -15,6 +15,7 @@ export class UmamiTransport {
   private loaded = false;
   private pending: Array<{ fn: () => void }> = [];
   private drainAttempts = 0;
+  private drainGeneration = 0;
   private readonly maxDrainAttempts = 10;
 
   constructor(
@@ -55,10 +56,18 @@ export class UmamiTransport {
     }
   }
 
+  /** 取消全部待发送请求并终止后续 drain（退出统计时调用）。 */
+  cancelPending(): void {
+    this.pending.length = 0;
+    this.drainGeneration += 1;
+  }
+
   private drain(): void {
     this.drainAttempts = 0;
+    const generation = this.drainGeneration;
     const attempt = () => {
-      this.drainAttempts++;
+      if (generation !== this.drainGeneration) return;
+      this.drainAttempts += 1;
       const umami = this.opts.getWindow()?.umami;
       if (umami) {
         for (const item of this.pending.splice(0)) {

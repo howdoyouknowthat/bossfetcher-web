@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createSiteAnalytics, normalizePath, ANALYTICS_OPT_OUT_KEY, ALLOWED_EVENTS } from '@bossfetcher/analytics';
+import { UmamiTransport } from './umami';
 
 interface Recorded {
   loads: Array<Record<string, string>>;
@@ -46,6 +47,30 @@ function makeHarness(pathname = '/', doNotTrack = false, seedOptOut = false) {
 
   return { analytics, rec, store };
 }
+
+describe('UmamiTransport', () => {
+  it('never drains queued requests after cancelPending', () => {
+    vi.useFakeTimers();
+    const sent: string[] = [];
+    let win: { umami?: { track: (name?: string) => void } } = {};
+    const transport = new UmamiTransport({
+      trackerUrl: 'https://stats.example.com/script.js',
+      websiteId: 'site-id',
+      domains: 'example.com',
+      loadScript: () => undefined,
+      getWindow: () => win as never,
+    });
+
+    transport.sendPageView();
+    transport.sendEvent('install_cta_click');
+    transport.cancelPending();
+    win = { umami: { track: (name) => sent.push(name ?? 'pageview') } };
+    vi.advanceTimersByTime(6000);
+
+    expect(sent).toEqual([]);
+    vi.useRealTimers();
+  });
+});
 
 describe('SiteAnalytics', () => {
   it('trackEvent("unknown") is rejected and not sent', () => {
