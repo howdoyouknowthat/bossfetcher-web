@@ -14,7 +14,8 @@
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "pnpm typecheck && pnpm test && pnpm build && node scripts/verify-release.mjs"
+    "verify": "pnpm typecheck && pnpm test && pnpm build && node scripts/verify-release.mjs",
+    "verify:release": "pnpm typecheck && pnpm test && pnpm build && node scripts/verify-release.mjs --release"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

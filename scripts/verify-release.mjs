@@ -14,7 +14,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 const RELEASE = process.argv.includes('--release');
 
-const PLACEHOLDERS = ['bossfetcher.example.com', 'stats.bossfetcher.example.com', '__UMAMI_WEBSITE_ID__', 'your-domain.example', 'change-me'];
+const RELEASE_PLACEHOLDERS = ['bossfetcher.example.com', 'stats.bossfetcher.example.com', '__UMAMI_WEBSITE_ID__', 'your-domain.example'];
+const PLACEHOLDERS = RELEASE_PLACEHOLDERS;
 const SECRET_PATTERNS = [/sk-[A-Za-z0-9]{16,}/, /AKIA[0-9A-Z]{16}/, /api[_ -]?key\s*[:=]\s*["'][^"']{8,}["']/i];
 const FORBIDDEN_LOCALHOST = ['localhost', '127.0.0.1', '0.0.0.0', '127.0.0.1:8765', 'collector_server'];
 const TRACKER_PATTERNS = [/umami/i, /website-id/i, /stats\.bossfetcher/i, /bossfetcher-tracker\.js/];

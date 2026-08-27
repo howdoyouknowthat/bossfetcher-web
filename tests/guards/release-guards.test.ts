@@ -19,6 +19,21 @@ describe('version consistency', () => {
   });
 });
 
+describe('release guard script', () => {
+  it('does not require real secrets in .env.example', () => {
+    const source = readFileSync(resolve(root, 'scripts/verify-release.mjs'), 'utf8');
+    expect(source).not.toMatch(/PLACEHOLDERS[^\n]*change-me/);
+  });
+
+  it('scans the built website, userscript and nginx domain templates in release mode', () => {
+    const source = readFileSync(resolve(root, 'scripts/verify-release.mjs'), 'utf8');
+    expect(source).toContain('collectSite()');
+    expect(source).toContain('bossfetcher-site.conf');
+    expect(source).toContain('stats.bossfetcher.conf');
+    expect(source).toContain('userscriptPath');
+  });
+});
+
 describe('built userscript guards', () => {
   const built = existsSync(userscriptPath);
   const run = built ? it : it.skip;

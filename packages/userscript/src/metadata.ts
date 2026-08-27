@@ -1,16 +1,15 @@
 import { APP_VERSION } from '@bossfetcher/contracts';
 
 /**
- * BossFetcher 官网域名。开发阶段为占位符，正式发布前必须替换为已备案域名
- * （scripts/verify-release.mjs 会阻止占位符进入发布产物）。
- * 构建时通过 Vite define 注入 BOSSFETCHER_SITE_ORIGIN 环境变量覆盖。
+ * BossFetcher 官网域名。默认为正式主站，构建时可通过 Vite define 注入
+ * BOSSFETCHER_SITE_ORIGIN 环境变量覆盖（scripts/verify-release.mjs 会扫描产物）。
  */
 declare const __BOSSFETCHER_SITE_ORIGIN__: string | undefined;
 
 export const SITE_ORIGIN: string =
   typeof __BOSSFETCHER_SITE_ORIGIN__ !== 'undefined' && __BOSSFETCHER_SITE_ORIGIN__
     ? __BOSSFETCHER_SITE_ORIGIN__
-    : 'https://bossfetcher.example.com';
+    : 'https://www.bossfetcher.icu';
 
 export const APP_VERSION_FULL = APP_VERSION;
 
