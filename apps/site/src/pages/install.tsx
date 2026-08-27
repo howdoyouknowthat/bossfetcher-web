@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAnalytics } from '../analytics-init';
+import { installStepStatus, type InstallStep } from './install-state';
 
 function isSupportedDesktop(): boolean {
   const ua = navigator.userAgent;
@@ -16,7 +17,7 @@ function detectScriptReady(): { ready: boolean; version: string } {
   return { ready: el.getAttribute('data-bossfetcher-ready') === '1', version: el.getAttribute('data-bossfetcher-version') || '' };
 }
 
-type Step = 'tampermonkey' | 'allow-scripts' | 'install-script' | 'detected' | 'unsupported';
+type Step = InstallStep;
 
 const TM_STORE = 'https://www.tampermonkey.net/';
 const ALLOW_USER_SCRIPTS_HELP = 'https://www.tampermonkey.net/faq.php?q=Q209';
@@ -65,9 +66,9 @@ export function InstallPage() {
     );
   }
 
-  const steps: Array<{ dot: string; title: string; body: React.ReactNode }> = [
+  const steps: Array<{ id: Exclude<InstallStep, 'detected' | 'unsupported'>; title: string; body: React.ReactNode }> = [
     {
-      dot: step === 'tampermonkey' ? '1' : '✓',
+      id: 'tampermonkey',
       title: '安装 Tampermonkey',
       body: (
         <>
@@ -91,7 +92,7 @@ export function InstallPage() {
       ),
     },
     {
-      dot: step === 'allow-scripts' ? '2' : '✓',
+      id: 'allow-scripts',
       title: '开启“允许用户脚本”权限',
       body: (
         <>
@@ -106,7 +107,7 @@ export function InstallPage() {
       ),
     },
     {
-      dot: step === 'install-script' ? '3' : '✓',
+      id: 'install-script',
       title: '安装 BossFetcher 脚本',
       body: (
         <>
@@ -128,15 +129,21 @@ export function InstallPage() {
       <h1>安装向导</h1>
       <p className="sub">全新用户大约需要 5 分钟。每一步都需要你明确确认，不做虚假进度。</p>
 
-      {steps.map((s) => (
-        <div className="guide-step" key={s.title}>
-          <div className="dot">{s.dot}</div>
-          <div>
-            <h3>{s.title}</h3>
-            {s.body}
+      {steps.map((s, index) => {
+        const status = installStepStatus(step, s.id);
+        const dot = status === 'complete' ? '✓' : String(index + 1);
+        return (
+          <div className={`guide-step ${status}`} key={s.id}>
+            <div className="dot">{dot}</div>
+            <div>
+              <h3>{s.title}</h3>
+              {status === 'current' ? s.body : null}
+              {status === 'complete' ? <p className="sub">已确认完成</p> : null}
+              {status === 'upcoming' ? <p className="sub">完成上一步后继续</p> : null}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {step === 'detected' ? (
         <div className="guide-step">

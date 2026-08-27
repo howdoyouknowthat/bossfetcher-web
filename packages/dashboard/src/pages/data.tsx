@@ -86,8 +86,12 @@ export function DataPage({ repo, tick }: { repo: LocalRepository; tick: number }
 
   async function removeKey() {
     if (!window.confirm('删除已保存的 API Key 和 AI 设置？')) return;
-    await repo.removeApiKey();
-    setResult({ ok: true, text: '已删除 API Key 与 AI 设置' });
+    try {
+      await repo.removeApiKey();
+      setResult({ ok: true, text: '已删除 API Key 与 AI 设置' });
+    } catch (e) {
+      setResult({ ok: false, text: e instanceof Error ? e.message : String(e) });
+    }
   }
 
   async function copyDiagnostics() {
