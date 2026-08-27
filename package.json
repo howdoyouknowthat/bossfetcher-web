@@ -15,9 +15,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "verify": "pnpm typecheck && pnpm test && pnpm build && node scripts/verify-release.mjs",
-    "verify:release": "pnpm typecheck && pnpm test && pnpm build && node scripts/verify-release.mjs --release"
+    "verify:release": "pnpm typecheck && pnpm test && pnpm build && node scripts/verify-release.mjs --release",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^20.14.0",
     "jsdom": "^24.1.0",
     "typescript": "^5.5.4",

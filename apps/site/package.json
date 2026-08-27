@@ -6,7 +6,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@bossfetcher/analytics": "workspace:*",
