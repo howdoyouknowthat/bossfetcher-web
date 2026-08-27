@@ -35,6 +35,10 @@
 - Nginx 官网访问日志：7 天。
 - 统计数据库备份：30 天。
 
+## 用户支持渠道
+
+- 唯一公开支持渠道是独立公开仓库的 Issue：`https://github.com/howdoyouknowthat/bossfetcher-web/issues`；不设任何邮件联系方式，也不收集任何账号信息。
+
 ## 验收手段
 
 - `scripts/verify-release.mjs`：no-localhost、密钥扫描、占位符、userscript 元数据、`/app` no-tracker、官网 bundle allowlist 事件、用户脚本零统计。

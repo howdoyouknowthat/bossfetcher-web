@@ -164,7 +164,7 @@ export function DataPage({ repo, tick }: { repo: LocalRepository; tick: number }
             ) : null}
           </div>
           <p className="bfd-muted" style={{ marginTop: 10, fontSize: 12.5 }}>
-            诊断信息不含岗位正文、简历、API Key 和页面 HTML，可安全粘贴给支持人员。
+            诊断信息不含岗位正文、简历、API Key 和页面 HTML，可安全粘贴到 BossFetcher GitHub 仓库的 Issue。
           </p>
         </Card>
 

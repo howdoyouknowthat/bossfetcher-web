@@ -39,8 +39,9 @@ export function HelpPage() {
       <div className="card" style={{ marginBottom: 14 }}>
         <h3>出现“页面结构已变化”或解析字段缺失</h3>
         <p>
-          为安全起见，脚本会停止当前记录写入并保留队列。请把<a href="/privacy">诊断信息</a>复制给支持人员，
-          不要在反馈中包含岗位或简历原文。
+          为安全起见，脚本会停止当前记录写入并保留队列。请复制不含岗位正文、简历、API Key 和 Cookie 的诊断信息，并在
+          <a href="https://github.com/howdoyouknowthat/bossfetcher-web/issues" target="_blank" rel="noopener noreferrer">BossFetcher GitHub 仓库</a>
+          提交 Issue。
         </p>
       </div>
       <div className="card" style={{ marginBottom: 14 }}>

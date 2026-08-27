@@ -100,7 +100,17 @@ export function PrivacyPage() {
         </p>
       </section>
 
-      <p className="sub">如仍有疑问，请通过支持邮箱与我们联系。</p>
+      <p className="sub">
+        如仍有疑问，请在
+        <a
+          href="https://github.com/howdoyouknowthat/bossfetcher-web/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          BossFetcher 的公开 GitHub 仓库
+        </a>
+        提交 Issue；提交前请删除岗位正文、简历、API Key、Cookie 和个人信息。
+      </p>
     </div>
   );
 }
