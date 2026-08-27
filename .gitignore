@@ -1,0 +1,39 @@
+# --- Dependencies ---
+node_modules/
+.pnpm-store/
+
+# --- Build outputs ---
+dist/
+apps/site/dist/
+packages/*/dist/
+*.user.js
+!packages/userscript/src/*.user.js
+
+# --- Local config & secrets ---
+.env
+.env.*
+!.env.example
+.env.*.local
+*.local
+*.pem
+*.key
+*.har
+
+# --- Test / coverage / e2e ---
+coverage/
+.vite/
+playwright-report/
+test-results/
+
+# --- OS artifacts ---
+.DS_Store
+*.log
+
+# --- Never commit infra secrets ---
+infra/analytics/.env
+infra/analytics/postgres/
+infra/analytics/backups/
+infra/analytics/*.tar.gz
+
+# --- Generated large fixtures ---
+fixtures/jobs-5000.json

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="no-referrer" />
+  <title>我的岗位库 · BossFetcher</title>
+</head>
+<body>
+  <!--
+    /app 是静态外壳：不加载统计、广告、聊天或录屏脚本。
+    业务界面由 BossFetcher 用户脚本在此容器内挂载。
+  -->
+  <div id="root">
+    <noscript>
+      <div style="font-family: system-ui,sans-serif;max-width:520px;margin:80px auto;text-align:center;line-height:1.7">
+        <h1 style="font-size:20px">需要启用 JavaScript</h1>
+        <p style="color:#6b6b66">BossFetcher 结果页需要 JavaScript 与 Tampermonkey 用户脚本运行。</p>
+      </div>
+    </noscript>
+    <div id="app-placeholder" style="font-family:system-ui,sans-serif;max-width:520px;margin:80px auto;text-align:center;line-height:1.8;color:#6b6b66">
+      <div style="font-size:26px;margin-bottom:8px">🧭</div>
+      <h1 style="font-size:19px;color:#1f1f1d;margin:0 0 8px">还没有检测到 BossFetcher 脚本</h1>
+      <p style="font-size:13.5px;margin:0 0 16px">
+        请先回到<a href="/install">安装向导</a>，完成 Tampermonkey 与 BossFetcher 脚本安装后，
+        在 BOSS 直聘页面点击“开始”采集，再回到这里查看你的本地岗位库。
+      </p>
+      <p style="font-size:12px">岗位数据只保存在你的浏览器本地，本页面不读取、不上传任何数据。</p>
+    </div>
+  </div>
+  <script type="module" src="/src/app-main.tsx"></script>
+</body>
+</html>

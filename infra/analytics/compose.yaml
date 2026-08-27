@@ -1,0 +1,89 @@
+# BossFetcher 自托管 Umami + PostgreSQL（腾讯云中国大陆 4 核 4 GB 单机）
+#
+# 安全基线：
+# - Umami 只绑定宿主机 127.0.0.1:3000（仅宿主机 Nginx 可达）；
+# - PostgreSQL 只在 Docker 内网，不映射公网端口；
+# - 镜像固定版本（staging 验证后使用），禁止生产跟随 latest；
+# - 真实密钥只放 .env（权限 0600），不进入 Git。
+#
+# 启动：docker compose up -d
+# 首次登录：admin / umami，登录后立即改强密码。
+
+services:
+  db:
+    image: postgres:16.3-alpine
+    container_name: bossfetcher-umami-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    networks:
+      - umami-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami -d umami"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.0"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  umami:
+    # 固定版本，需在 staging 验证 tag 与 digest 后使用
+    image: docker.umami.is/umami-software/umami:postgresql-v3.3.1
+    container_name: bossfetcher-umami
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      # 只绑定宿主机回环地址；公网只能通过 Nginx HTTPS 访问
+      - "127.0.0.1:3000:3000"
+    environment:
+      DATABASE_URL: postgresql://umami:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/umami
+      APP_SECRET: ${APP_SECRET:?set APP_SECRET in .env}
+      # 关闭自身匿名 telemetry、更新检查与所有外部网络调用
+      DISABLE_TELEMETRY: "1"
+      DISABLE_UPDATES: "1"
+      PRIVATE_MODE: "1"
+      # 不启用 Replay/Heatmap/User ID 等扩展采集；SALT_ROTATION 控制匿名会话盐轮换
+      SALT_ROTATION: month
+      USE_UUIDV7: "1"
+      # 固定收集端点，避免广告拦截器特征
+      COLLECT_API_ENDPOINT: /api/collect
+      TRACKER_SCRIPT_NAME: bossfetcher-tracker.js
+      # 双因素加密密钥（v3.3+）
+      TWO_FACTOR_ENCRYPTION_KEY: ${TWO_FACTOR_ENCRYPTION_KEY:-}
+    networks:
+      - umami-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.5"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  umami-net:
+    internal: false
+    driver: bridge
