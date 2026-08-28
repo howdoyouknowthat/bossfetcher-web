@@ -26,7 +26,7 @@ export function PrivacyPage() {
   return (
     <div>
       <h1>隐私与数据</h1>
-      <p className="sub">最后更新：2026-08-21 · 产品公开名称“帮你刷 boss”，代码/产品名称 BossFetcher。</p>
+      <p className="sub">最后更新：2026-08-28 · 产品公开名称“帮你刷 boss”，代码/产品名称 BossFetcher。</p>
 
       <section className="section" style={{ marginTop: 0 }}>
         <h2>本地数据边界</h2>
@@ -45,7 +45,8 @@ export function PrivacyPage() {
         <h2>网站统计说明</h2>
         <p>
           为了解“帮你刷 boss”官网和安装向导是否正常使用，本网站使用部署在腾讯云中国大陆服务器上的自建网站统计服务
-          （自托管 Umami + PostgreSQL）。统计记录公开页面的规范化路径、固定的安装事件名称和事件发生时间；
+          （自托管 Umami + PostgreSQL）。标准 tracker 会发送网站 ID、公开页面的 hostname、公开页面标题、去掉 query/hash
+          的规范化 URL、来源页、浏览器语言和屏幕尺寸；安装操作只附加固定事件名称，不附加自定义事件属性。服务器记录请求时间，
           Umami 还可能根据请求推导粗粒度的来源类型、浏览器类别、操作系统类别、设备类别和国家，用来统计首页访问量、
           安装步骤完成情况和故障情况。
         </p>
@@ -96,7 +97,7 @@ export function PrivacyPage() {
         <h2>自行验证</h2>
         <p>
           开发者可打开浏览器 Network 面板，确认“帮你刷 boss”域名没有收到岗位、公司、简历、API Key、Cookie
-          或本地存储内容；统计请求只包含固定事件名与规范化路径。
+          或本地存储内容；统计请求只应包含上文披露的公开页面标准字段与固定事件名，不应包含 URL query/hash、表单内容或本地存储内容。
         </p>
       </section>
 

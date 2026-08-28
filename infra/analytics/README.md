@@ -14,14 +14,14 @@ docker compose ps
 
 - 首次登录：`admin` / `umami`，**登录后立即改强密码**。
 - 只通过 SSH 隧道或临时固定管理员 IP 白名单访问 Umami 管理界面；为 `www.bossfetcher.icu` 创建一个 website，把 website id 复制到受保护的构建环境作为 `VITE_UMAMI_WEBSITE_ID`（构建机执行 `pnpm verify:release` 时导出），不要把 website id 写进仓库。
-- 固定镜像版本：`compose.yaml` 已固定 `docker.umami.is/umami-software/umami:postgresql-v3.3.1` 与 `postgres:16.3-alpine`，需在 staging 验证 tag/digest 后再用于生产。
+- 固定镜像版本：`compose.yaml` 已按镜像 digest 固定 Umami v3.3.1 的 amd64 产物，并固定 `postgres:16.3-alpine`。
 
 ## 运行时环境校验
 
 `verify-runtime-env.sh` 在服务器上检查 `.env`：
 
 - 文件存在且权限为 600；
-- `POSTGRES_PASSWORD`、`APP_SECRET`、`TWO_FACTOR_ENCRYPTION_KEY` 均已填写、长度 ≥ 32、不含示例值；
+- `POSTGRES_PASSWORD`、`APP_SECRET` 均已填写且长度 ≥ 32；`TWO_FACTOR_ENCRYPTION_KEY` 必须是 `openssl rand -hex 32` 生成的 64 位十六进制值；
 - 绝不读取或打印真实值。
 
 ## 安全基线
@@ -47,8 +47,10 @@ ss -lntp | grep ':5432' && exit 1 || true
 # 每日逻辑备份（保留 30 天），写入 crontab
 15 4 * * * /srv/bossfetcher/analytics/backup.sh
 
-# 恢复演练：恢复到一次性 staging 数据库，确认记录数后再处理
-gunzip -c backups/umami-<stamp>.sql.gz | docker compose exec -T db psql -U umami -d umami
+# 恢复演练必须使用一次性 staging 数据库，禁止写入生产库 umami
+docker compose exec -T db createdb -U umami umami_restore_test
+gunzip -c backups/umami-<stamp>.sql.gz | docker compose exec -T db psql -U umami -d umami_restore_test
+docker compose exec -T db dropdb -U umami umami_restore_test
 
 # 12 个月统计数据清理：通过 Umami 后台的 Website Reset/Delete 能力清除该站点数据
 # （先在 staging 演练，确认只删目标站点、不误删其他站点）
@@ -63,4 +65,4 @@ gunzip -c backups/umami-<stamp>.sql.gz | docker compose exec -T db psql -U umami
 2. 阅读当前版本官方迁移说明（Umami 大版本可能运行 schema migration）；
 3. 先在 staging 验证新版本与 digest；
 4. 人工发布：修改 `compose.yaml` 版本 → `docker compose pull` → `docker compose up -d`；
-5. 验证 `/api/health`、官网与收集端点。
+5. 验证 `/api/heartbeat`、官网与收集端点。

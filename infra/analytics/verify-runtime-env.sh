@@ -11,7 +11,11 @@ for key in POSTGRES_PASSWORD APP_SECRET TWO_FACTOR_ENCRYPTION_KEY; do
   line="$(grep -E "^${key}=" "$env_file" || true)"
   value="${line#*=}"
   test "$line" != "$value" || { echo "missing ${key}" >&2; exit 1; }
-  test "${#value}" -ge 32 || { echo "${key} is too short" >&2; exit 1; }
+  if [[ "$key" == "TWO_FACTOR_ENCRYPTION_KEY" ]]; then
+    [[ "$value" =~ ^[[:xdigit:]]{64}$ ]] || { echo "${key} must be 64 hexadecimal characters" >&2; exit 1; }
+  else
+    test "${#value}" -ge 32 || { echo "${key} is too short" >&2; exit 1; }
+  fi
   case "$value" in
     *change-me*) echo "${key} still uses example content" >&2; exit 1 ;;
   esac

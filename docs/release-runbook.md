@@ -24,10 +24,10 @@ node scripts/verify-release.mjs --release
 - 产物不含 localhost / 密钥 / `/app` 不含 tracker；
 - 用户脚本元数据与 `APP_VERSION` 一致。
 
-一键发布检查（构建机需先导出真实 `VITE_UMAMI_WEBSITE_ID`）：
+一键发布检查（构建机需注入真实 `VITE_UMAMI_WEBSITE_ID` 与备案号原文）：
 
 ```bash
-pnpm verify:release
+VITE_UMAMI_WEBSITE_ID='实际 website id' VITE_ICP_NUMBER='备案号原文' pnpm verify:release
 ```
 
 ### staging 验收（每次发布）
@@ -45,16 +45,10 @@ pnpm verify:release
 
 ## production 发布（ICP 备案通过后）
 
-### 硬性门槛 0：ICP 备案与当前证书限制
+### 硬性门槛 0：ICP 备案
 
 - 未取得 ICP 备案号前，**不得**让 Nginx 在公网 80/443 提供网站内容。
-- 当前证书为手动 DNS-01 签发：
-
-```markdown
-The current certificate was issued by manual DNS-01 and expires on 2026-11-21.
-`certbot.timer` being active does not make a manual certificate renewable.
-Production may not launch until `certbot renew --dry-run` succeeds with a non-manual authenticator.
-```
+- 页脚必须显示备案号原文并链接工信部备案系统 `https://beian.miit.gov.cn/`。
 
 ### 硬性门槛 1：证书改为 webroot 自动续期（ICP 通过后）
 
@@ -135,8 +129,8 @@ curl -fsSI https://stats.bossfetcher.icu/bossfetcher-tracker.js
 
 ### 上线发布
 
-1. 构建产物上传 `/srv/bossfetcher/web/current/`；
-2. 用户脚本同时写入 `/srv/bossfetcher/web/current/bossfetcher.user.js` 与 `/srv/bossfetcher/web/releases/<version>/bossfetcher.user.js`；
+1. 将完整构建产物和用户脚本上传 `/srv/bossfetcher/web/releases/<version>/`；
+2. 用 `current.next` 创建新符号链接，再以 `mv -Tf` 原子替换 `/srv/bossfetcher/web/current`；
 3. `nginx -t && systemctl reload nginx`；
 4. 验证 `/bossfetcher.user.js` 返回完整脚本（非 HTML 错误页），安装地址短缓存；
 5. 检查 Umami 收集端点 `/api/collect` 正常；管理后台未授权访问返回拒绝。

@@ -9,7 +9,7 @@
 
 ```text
 /srv/bossfetcher/
-├─ web/current/          # NGINX 返回的构建产物（apps/site/dist）
+├─ web/current           # 指向当前 release 的符号链接
 ├─ web/releases/         # 最近若干个可回滚构建 + 历史用户脚本版本
 ├─ analytics/            # compose.yaml、.env、postgres/、backups/
 ├─ backups/              # 临时备份
@@ -20,10 +20,11 @@
 
 ```bash
 # 在构建机
-pnpm build
-# 将 apps/site/dist 上传到 /srv/bossfetcher/web/current
-# 将 packages/userscript/dist/bossfetcher.user.js 上传到 /srv/bossfetcher/web/current/ 与 /srv/bossfetcher/web/releases/<version>/
+VITE_UMAMI_WEBSITE_ID='实际 website id' VITE_ICP_NUMBER='备案号原文' pnpm build
+# 将 apps/site/dist 与 bossfetcher.user.js 上传到 /srv/bossfetcher/web/releases/<version>/
 # 在服务器
+ln -sfn /srv/bossfetcher/web/releases/<version> /srv/bossfetcher/web/current.next
+mv -Tf /srv/bossfetcher/web/current.next /srv/bossfetcher/web/current
 nginx -t && systemctl reload nginx
 ```
 
@@ -32,12 +33,12 @@ nginx -t && systemctl reload nginx
 - `bossfetcher-site.conf`：官网 vhost，80→443，静态资源 hash 长缓存，`index.html`/用户脚本短缓存，安全头与 CSP（`script-src`/`connect-src` 只放行 `https://stats.bossfetcher.icu`），`Referrer-Policy: no-referrer`。
 - `stats.bossfetcher.conf`：统计子域名反向代理到 `127.0.0.1:3000`；收集端点 `access_log off`；管理后台按来源 IP 限制（默认 `deny all` 返回 403）。
 - `nginx-logrotate.conf`：官网访问日志保留 7 天。
-- 用户脚本必须以 `application/javascript` 提供，且安装地址短缓存，历史版本长缓存。
+- 用户脚本必须以 `application/javascript` 提供，且安装地址短缓存；历史 URL 只允许 `/releases/<version>/bossfetcher.user.js` 并长缓存。
 
 ## 上线前置门槛（按顺序执行，全部通过才公开）
 
 1. **ICP 备案**：未取得备案号前，Nginx 不得在公网 80/443 提供网站内容。
-2. **证书自动续期**：当前证书为手动 DNS-01 签发（2026-11-21 到期），`certbot.timer` 运行不等于可续期。ICP 通过后改用 webroot 续期并验证：
+2. **证书自动续期**：先启用 `bossfetcher-bootstrap-http.conf`，让三个域名的 80 端口都能从 `/var/www/certbot` 提供 HTTP-01 challenge，再签发并验证：
 
    ```bash
    sudo mkdir -p /var/www/certbot
@@ -46,6 +47,8 @@ nginx -t && systemctl reload nginx
      --cert-name bossfetcher.icu \
      -d bossfetcher.icu -d www.bossfetcher.icu -d stats.bossfetcher.icu
    sudo certbot renew --dry-run
+   sudo install -m 0755 certbot-reload-nginx.sh \
+     /etc/letsencrypt/renewal-hooks/deploy/reload-nginx
    ```
 
    预期：三个 SAN 保留，dry-run 无需手动 TXT 记录即成功。

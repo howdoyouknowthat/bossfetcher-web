@@ -30,7 +30,19 @@ describe('release guard script', () => {
     expect(source).toContain('collectSite()');
     expect(source).toContain('bossfetcher-site.conf');
     expect(source).toContain('stats.bossfetcher.conf');
+    expect(source).toContain('bossfetcher-bootstrap-http.conf');
+    expect(source).toContain('certbot-reload-nginx.sh');
+    expect(source).toContain('nginx-logrotate.conf');
     expect(source).toContain('userscriptPath');
+    expect(source).toContain('Umami website id is a UUID');
+    expect(source).toContain('ICP number is embedded');
+    expect(source).toContain('ICP number links to MIIT');
+  });
+
+  it('serves only versioned userscripts from the release archive', () => {
+    const nginx = readFileSync(resolve(root, 'infra/site/bossfetcher-site.conf'), 'utf8');
+    expect(nginx).toContain('alias /srv/bossfetcher/web/releases/$1/bossfetcher.user.js;');
+    expect(nginx).toMatch(/location \/releases\/ \{\s*return 404;/);
   });
 });
 
