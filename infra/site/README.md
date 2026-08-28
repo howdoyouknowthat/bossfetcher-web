@@ -33,7 +33,7 @@ nginx -t && systemctl reload nginx
 - `bossfetcher-site.conf`：官网 vhost，80→443，静态资源 hash 长缓存，`index.html`/用户脚本短缓存，安全头与 CSP（`script-src`/`connect-src` 只放行 `https://stats.bossfetcher.icu`），`Referrer-Policy: no-referrer`。
 - `stats.bossfetcher.conf`：统计子域名反向代理到 `127.0.0.1:3000`；收集端点 `access_log off`；管理后台按来源 IP 限制（默认 `deny all` 返回 403）。
 - `nginx-logrotate.conf`：官网访问日志保留 7 天。
-- 用户脚本必须以 `application/javascript` 提供，且安装地址短缓存，历史版本长缓存。
+- 用户脚本必须以 `application/javascript` 提供，且安装地址短缓存；历史 URL 只允许 `/releases/<version>/bossfetcher.user.js` 并长缓存。
 
 ## 上线前置门槛（按顺序执行，全部通过才公开）
 

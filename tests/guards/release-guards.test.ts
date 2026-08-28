@@ -38,6 +38,12 @@ describe('release guard script', () => {
     expect(source).toContain('ICP number is embedded');
     expect(source).toContain('ICP number links to MIIT');
   });
+
+  it('serves only versioned userscripts from the release archive', () => {
+    const nginx = readFileSync(resolve(root, 'infra/site/bossfetcher-site.conf'), 'utf8');
+    expect(nginx).toContain('alias /srv/bossfetcher/web/releases/$1/bossfetcher.user.js;');
+    expect(nginx).toMatch(/location \/releases\/ \{\s*return 404;/);
+  });
 });
 
 describe('built userscript guards', () => {
