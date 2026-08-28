@@ -3,6 +3,7 @@
 # 用法：crontab 每日执行，例如
 #   15 4 * * * /srv/bossfetcher/analytics/backup.sh
 set -euo pipefail
+umask 077
 
 APP_DIR="/srv/bossfetcher/analytics"
 BACKUP_DIR="${APP_DIR}/backups"

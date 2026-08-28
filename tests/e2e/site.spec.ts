@@ -3,6 +3,12 @@ import { expect, test } from '@playwright/test';
 test('public routes render and app shell contains no tracker', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: '把 BOSS 直聘页面，变成你自己的岗位库' })).toBeVisible();
+  if (process.env.VITE_ICP_NUMBER) {
+    await expect(page.getByRole('link', { name: process.env.VITE_ICP_NUMBER })).toHaveAttribute(
+      'href',
+      'https://beian.miit.gov.cn/',
+    );
+  }
 
   await page.goto('/install');
   await expect(page.getByRole('heading', { name: '安装向导' })).toBeVisible();

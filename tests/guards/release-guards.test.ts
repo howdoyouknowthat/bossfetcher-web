@@ -30,7 +30,13 @@ describe('release guard script', () => {
     expect(source).toContain('collectSite()');
     expect(source).toContain('bossfetcher-site.conf');
     expect(source).toContain('stats.bossfetcher.conf');
+    expect(source).toContain('bossfetcher-bootstrap-http.conf');
+    expect(source).toContain('certbot-reload-nginx.sh');
+    expect(source).toContain('nginx-logrotate.conf');
     expect(source).toContain('userscriptPath');
+    expect(source).toContain('Umami website id is a UUID');
+    expect(source).toContain('ICP number is embedded');
+    expect(source).toContain('ICP number links to MIIT');
   });
 });
 

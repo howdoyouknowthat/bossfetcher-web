@@ -6,6 +6,8 @@ import { PrivacyPage } from './pages/privacy';
 
 export type Route = 'home' | 'install' | 'help' | 'privacy';
 
+const ICP_NUMBER = (import.meta.env?.VITE_ICP_NUMBER || '').trim();
+
 function routeFromPath(pathname: string): Route {
   if (pathname.startsWith('/install')) return 'install';
   if (pathname.startsWith('/help')) return 'help';
@@ -21,8 +23,9 @@ function Link({ to, children, className, onClick }: { to: string; children: Reac
   );
 }
 
-export function App({ pathname }: { pathname?: string }) {
+export function App({ pathname, icpNumber = ICP_NUMBER }: { pathname?: string; icpNumber?: string }) {
   const route = routeFromPath(pathname ?? location.pathname);
+  const showIcpNumber = icpNumber.length > 0;
 
   return (
     <>
@@ -47,6 +50,11 @@ export function App({ pathname }: { pathname?: string }) {
         <div className="site-footer-inner">
           <span>帮你刷 boss · BossFetcher</span>
           <span>岗位与简历数据只保存在你的浏览器</span>
+          {showIcpNumber ? (
+            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
+              {icpNumber}
+            </a>
+          ) : null}
         </div>
       </footer>
     </>

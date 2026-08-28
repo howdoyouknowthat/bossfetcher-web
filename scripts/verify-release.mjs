@@ -19,6 +19,7 @@ const PLACEHOLDERS = RELEASE_PLACEHOLDERS;
 const SECRET_PATTERNS = [/sk-[A-Za-z0-9]{16,}/, /AKIA[0-9A-Z]{16}/, /api[_ -]?key\s*[:=]\s*["'][^"']{8,}["']/i];
 const FORBIDDEN_LOCALHOST = ['localhost', '127.0.0.1', '0.0.0.0', '127.0.0.1:8765', 'collector_server'];
 const TRACKER_PATTERNS = [/umami/i, /website-id/i, /stats\.bossfetcher/i, /bossfetcher-tracker\.js/];
+const UUID_PATTERN = /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i;
 
 let failures = 0;
 const results = [];
@@ -54,6 +55,9 @@ function collectInfra() {
   return [
     resolve(root, 'infra/site/bossfetcher-site.conf'),
     resolve(root, 'infra/site/stats.bossfetcher.conf'),
+    resolve(root, 'infra/site/bossfetcher-bootstrap-http.conf'),
+    resolve(root, 'infra/site/certbot-reload-nginx.sh'),
+    resolve(root, 'infra/site/nginx-logrotate.conf'),
     resolve(root, 'infra/analytics/compose.yaml'),
     resolve(root, 'infra/analytics/backup.sh'),
     resolve(root, 'infra/analytics/.env.example'),
@@ -123,6 +127,11 @@ if (existsSync(appHtml)) {
 const mainJs = walkFiles(resolve(root, 'apps/site/dist/assets')).find((f) => f.includes('main-') && f.endsWith('.js'));
 if (mainJs) {
   const content = readFileSync(mainJs, 'utf8');
+  if (RELEASE) {
+    check('Umami website id is a UUID', UUID_PATTERN.test(content));
+    check('ICP number is embedded', content.includes('ICP备'));
+    check('ICP number links to MIIT', content.includes('https://beian.miit.gov.cn/'));
+  }
   const events = ['install_cta_click', 'tampermonkey_store_open', 'userscript_install_open', 'userscript_ready_detected'];
   for (const ev of events) {
     check(`analytics allowlist in site bundle: ${ev}`, content.includes(ev));
